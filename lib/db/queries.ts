@@ -197,8 +197,69 @@ export async function getGroupDocuments(groupId: string) {
 export async function getDocumentsByOrganization(organizationId: string) {
   const result = await db.query.documents.findMany({
     where: eq(documents.organizationId, organizationId),
+    with: {
+      uploader: {
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+        },
+      },
+    },
+    orderBy: [desc(documents.uploadedAt)],
   });
   return result;
+}
+
+export async function getDocumentById(documentId: string) {
+  const result = await db.query.documents.findFirst({
+    where: eq(documents.id, documentId),
+    with: {
+      uploader: {
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      organization: true,
+    },
+  });
+  return result;
+}
+
+export async function createDocument(data: {
+  organizationId: string;
+  uploadedBy: string;
+  filename: string;
+  fileType: string;
+  fileSize: number;
+  r2Key: string;
+}) {
+  const result = await db.insert(documents).values(data).returning();
+  return result[0];
+}
+
+export async function deleteDocument(documentId: string) {
+  const result = await db
+    .delete(documents)
+    .where(eq(documents.id, documentId))
+    .returning();
+  return result[0];
+}
+
+export async function checkUserAccessToOrganization(
+  userId: string,
+  organizationId: string
+): Promise<boolean> {
+  const result = await db.query.organizationMembers.findFirst({
+    where: and(
+      eq(organizationMembers.userId, userId),
+      eq(organizationMembers.organizationId, organizationId)
+    ),
+  });
+  return !!result;
 }
 
 // ============= Helper Functions =============

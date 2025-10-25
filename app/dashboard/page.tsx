@@ -161,7 +161,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline" className="w-full">
-                <Link href="/documents/sources">
+                <Link href="/documents">
                   Manage Documents
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>

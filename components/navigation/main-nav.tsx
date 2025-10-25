@@ -24,6 +24,22 @@ export function MainNav() {
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-6">
+          {user && (
+            <>
+              <Link
+                href="/dashboard"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/documents"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Documents
+              </Link>
+            </>
+          )}
           <Link
             href="/pricing"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
