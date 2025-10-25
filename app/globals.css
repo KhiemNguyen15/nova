@@ -47,12 +47,12 @@
   --radius: 0.625rem;
 
   /* Space Theme - Light Mode (Nebula Sky) */
-  --background: oklch(0.98 0.01 260);
-  --foreground: oklch(0.15 0.02 270);
-  --card: oklch(1 0 0 / 0.7);
-  --card-foreground: oklch(0.15 0.02 270);
-  --popover: oklch(0.99 0 0);
-  --popover-foreground: oklch(0.15 0.02 270);
+  --background: oklch(0.12 0.02 270 / 0.95);
+  --foreground: oklch(0.95 0.01 270);
+  --card: oklch(0.15 0.02 270 / 0.5);
+  --card-foreground: oklch(0.95 0.01 270);
+  --popover: oklch(0.12 0.02 270 / 0.6);
+  --popover-foreground: oklch(0.95 0.01 270);
 
   /* Cosmic Purple Primary */
   --primary: oklch(0.55 0.25 285);
@@ -93,13 +93,13 @@
 
 .dark {
   /* Space Theme - Dark Mode (Deep Space) */
-  --background: oklch(0.08 0.01 270 / 0.85);
+  --background: oklch(0.05 0.01 270 / 0.95);
   --foreground: oklch(0.95 0.01 270);
 
   /* Cards with subtle cosmic glow - more transparent to see stars */
-  --card: oklch(0.12 0.02 270 / 0.4);
+  --card: oklch(0.10 0.02 270 / 0.3);
   --card-foreground: oklch(0.95 0.01 270);
-  --popover: oklch(0.10 0.02 270 / 0.5);
+  --popover: oklch(0.08 0.02 270 / 0.4);
   --popover-foreground: oklch(0.95 0.01 270);
 
   /* Vibrant Cosmic Purple Primary */
@@ -146,9 +146,9 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(ellipse at 20% 30%, rgba(120, 80, 200, 0.15) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, rgba(150, 100, 255, 0.1) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, rgba(100, 150, 255, 0.05) 0%, transparent 70%);
+      radial-gradient(ellipse at 20% 30%, rgba(120, 80, 200, 0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(150, 100, 255, 0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(100, 150, 255, 0.12) 0%, transparent 70%);
     background-attachment: fixed;
   }
 }

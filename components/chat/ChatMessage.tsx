@@ -16,7 +16,7 @@ export function ChatMessage({ role, content, timestamp, isStreaming }: ChatMessa
     <div
       className={cn(
         "flex gap-4 px-4 py-6 hover:bg-accent/5 transition-colors",
-        isUser ? "bg-background" : "bg-muted/20"
+        isUser ? "" : ""
       )}
     >
       <Avatar className="h-8 w-8 shrink-0">
@@ -77,7 +77,7 @@ function MessageContent({ content }: { content: string }) {
           return (
             <pre
               key={index}
-              className="bg-muted/50 rounded-lg p-4 overflow-x-auto border border-border/50 my-4"
+              className="bg-muted/10 backdrop-blur-sm rounded-lg p-4 overflow-x-auto border border-border/30 my-4"
             >
               {language && (
                 <div className="text-xs text-muted-foreground mb-2 font-mono">

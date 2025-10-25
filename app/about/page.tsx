@@ -66,7 +66,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
+    <div className="min-h-screen bg-transparent">
       <MainNav />
 
       <div className="container mx-auto py-16 px-4">

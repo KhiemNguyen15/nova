@@ -43,7 +43,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
+    <div className="min-h-screen bg-transparent">
       <MainNav />
 
       {/* Hero Section */}
@@ -116,7 +116,7 @@ export default async function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-24 bg-gradient-to-b from-transparent to-background">
+      <section className="container mx-auto px-4 py-24 bg-transparent">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-4">
             <h2 className="text-3xl md:text-5xl font-bold">

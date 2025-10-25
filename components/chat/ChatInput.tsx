@@ -61,7 +61,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm p-4">
+    <div className="border-t border-border/30 bg-background/10 backdrop-blur-sm p-4">
       <div className="max-w-4xl mx-auto">
         <div className="relative flex items-end gap-2">
           <Textarea
@@ -72,7 +72,7 @@ export function ChatInput({
             placeholder={placeholder}
             disabled={disabled || isStreaming}
             rows={rows}
-            className="min-h-[48px] max-h-[144px] resize-none pr-12 bg-muted/50 border-border/50 focus:border-primary/50 transition-colors"
+            className="min-h-[48px] max-h-[144px] resize-none pr-12 bg-muted/10 backdrop-blur-sm border-border/30 focus:border-primary/50 transition-colors"
           />
 
           <div className="absolute right-2 bottom-2">

@@ -40,7 +40,7 @@ export default function DocumentsPage() {
   const selectedOrg = organizations.find((org) => org.id === selectedOrgId);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
+    <div className="min-h-screen bg-transparent">
       <MainNav />
 
       <div className="container mx-auto py-8 px-4">

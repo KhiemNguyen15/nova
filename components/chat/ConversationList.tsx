@@ -129,7 +129,7 @@ export function ConversationList({
                                 className={cn(
                                   "w-full justify-start px-2 h-9 text-xs text-left font-normal",
                                   isActive &&
-                                    "bg-accent text-accent-foreground font-medium"
+                                    "bg-accent/20 backdrop-blur-sm text-accent-foreground font-medium"
                                 )}
                               >
                                 <MessageSquare className="h-3 w-3 mr-2 shrink-0" />

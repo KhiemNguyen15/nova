@@ -71,7 +71,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-transparent p-4">
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle>Welcome to Nova</CardTitle>

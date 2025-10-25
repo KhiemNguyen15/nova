@@ -50,7 +50,7 @@ export function ChatSidebar({
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-background/40 backdrop-blur-md z-40 md:hidden"
+          className="fixed inset-0 bg-background/10 backdrop-blur-sm z-40 md:hidden"
           onClick={onClose}
         />
       )}
@@ -58,7 +58,7 @@ export function ChatSidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed md:relative inset-y-0 left-0 z-50 w-80 flex flex-col bg-card border-r border-border/50 transition-transform duration-300",
+          "fixed md:relative inset-y-0 left-0 z-50 w-80 flex flex-col bg-card/20 backdrop-blur-sm border-r border-border/30 transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
@@ -91,7 +91,7 @@ export function ChatSidebar({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-between bg-muted/50 hover:bg-muted border-border/50"
+                className="w-full justify-between bg-muted/10 backdrop-blur-sm hover:bg-muted/20 border-border/30"
               >
                 <div className="flex flex-col items-start overflow-hidden">
                   <span className="text-xs text-muted-foreground">

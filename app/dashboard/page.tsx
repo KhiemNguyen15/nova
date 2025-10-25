@@ -41,7 +41,7 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
+    <div className="min-h-screen bg-transparent">
       <MainNav />
 
       <div className="container mx-auto px-4 py-8">

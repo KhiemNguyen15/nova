@@ -95,14 +95,14 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-transparent">
       <ChatHeader
         groupName={selectedGroup.name}
         organizationName={selectedGroup.organizationName}
         onMenuClick={() => setIsSidebarOpen(true)}
       />
 
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 bg-none" ref={scrollAreaRef}>
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6">
@@ -118,7 +118,7 @@ export default function ChatPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-8 max-w-2xl w-full">
               <button
                 onClick={() => setInput("What documents are available in our knowledge base?")}
-                className="p-4 text-left border border-border/50 rounded-lg hover:bg-accent/50 transition-colors"
+                className="p-4 text-left border border-border/30 rounded-lg bg-card/10 backdrop-blur-sm hover:bg-accent/20 transition-colors"
               >
                 <div className="text-sm font-medium mb-1">Explore Documents</div>
                 <div className="text-xs text-muted-foreground">
@@ -127,7 +127,7 @@ export default function ChatPage() {
               </button>
               <button
                 onClick={() => setInput("Can you summarize our latest project guidelines?")}
-                className="p-4 text-left border border-border/50 rounded-lg hover:bg-accent/50 transition-colors"
+                className="p-4 text-left border border-border/30 rounded-lg bg-card/10 backdrop-blur-sm hover:bg-accent/20 transition-colors"
               >
                 <div className="text-sm font-medium mb-1">Get Summaries</div>
                 <div className="text-xs text-muted-foreground">
@@ -136,7 +136,7 @@ export default function ChatPage() {
               </button>
               <button
                 onClick={() => setInput("How do I set up the development environment?")}
-                className="p-4 text-left border border-border/50 rounded-lg hover:bg-accent/50 transition-colors"
+                className="p-4 text-left border border-border/30 rounded-lg bg-card/10 backdrop-blur-sm hover:bg-accent/20 transition-colors"
               >
                 <div className="text-sm font-medium mb-1">Technical Questions</div>
                 <div className="text-xs text-muted-foreground">
@@ -145,7 +145,7 @@ export default function ChatPage() {
               </button>
               <button
                 onClick={() => setInput("What are our team's best practices?")}
-                className="p-4 text-left border border-border/50 rounded-lg hover:bg-accent/50 transition-colors"
+                className="p-4 text-left border border-border/30 rounded-lg bg-card/10 backdrop-blur-sm hover:bg-accent/20 transition-colors"
               >
                 <div className="text-sm font-medium mb-1">Best Practices</div>
                 <div className="text-xs text-muted-foreground">

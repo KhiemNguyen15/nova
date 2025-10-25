@@ -12,7 +12,7 @@ export default function ChatLayout({
   const [selectedGroupId, setSelectedGroupId] = useState<string>("group-1");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-transparent">
       <ChatSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -20,7 +20,7 @@ export default function ChatLayout({
         onGroupSelect={setSelectedGroupId}
       />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
         {children}
       </main>
     </div>
