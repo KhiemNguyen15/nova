@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserConversations } from "@/lib/db/queries";
-
-// TODO: Replace with actual Auth0 user session
-function getMockUserId(): string {
-  return "mock-user-id";
-}
+import { getAuthenticatedUser } from "@/lib/auth-helpers";
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = getMockUserId();
+    // Authenticate user
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.redirect(new URL('/api/auth/login', request.url));
+    }
+
+    const userId = user.id;
 
     // Get all user conversations
     const conversations = await getUserConversations(userId);

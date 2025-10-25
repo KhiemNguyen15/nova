@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { MainNav } from '@/components/navigation/main-nav';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Users, FileText, MessageSquare } from 'lucide-react';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export default async function DashboardPage() {
   // Get the session from Auth0
@@ -11,7 +14,18 @@ export default async function DashboardPage() {
 
   // If no session, redirect to login
   if (!session?.user) {
-    redirect('/auth/login'); // Auth0 SDK auto login route
+    redirect('/api/auth/login');
+  }
+
+  // Check if user exists in database
+  const auth0Id = session.user.sub;
+  const existingUser = await db.query.users.findFirst({
+    where: eq(users.auth0Id, auth0Id),
+  });
+
+  // Redirect to onboarding if user not in database
+  if (!existingUser) {
+    redirect('/onboarding');
   }
 
   const user = session.user;

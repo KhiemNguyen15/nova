@@ -20,11 +20,25 @@ import {
 import { MainNav } from "@/components/navigation/main-nav";
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export default async function Home() {
-    const session = await auth0.getSession(); // session can be null
+  const session = await auth0.getSession(); // session can be null
 
   if (session?.user) {
+    // Check if user exists in database
+    const auth0Id = session.user.sub;
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.auth0Id, auth0Id),
+    });
+
+    // Redirect to onboarding if user not in database
+    if (!existingUser) {
+      redirect("/onboarding");
+    }
+
     redirect("/dashboard");
   }
 

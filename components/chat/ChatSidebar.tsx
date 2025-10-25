@@ -13,6 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ConversationList } from "./ConversationList";
 import { useConversations } from "@/hooks/useConversations";
+import { useGroups } from "@/hooks/useGroups";
 import {
   ChevronDown,
   Plus,
@@ -39,25 +40,10 @@ export function ChatSidebar({
   onGroupSelect,
 }: ChatSidebarProps) {
   const { groupedConversations, isLoading, refresh } = useConversations();
+  const { groups, isLoading: isLoadingGroups } = useGroups();
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
 
-  // TODO: Replace with actual user groups from Auth0/database
-  const mockGroups = [
-    {
-      id: "group-1",
-      name: "Engineering Team",
-      organizationId: "org-1",
-      organizationName: "Acme Corp",
-    },
-    {
-      id: "group-2",
-      name: "Product Team",
-      organizationId: "org-1",
-      organizationName: "Acme Corp",
-    },
-  ];
-
-  const selectedGroup = mockGroups.find((g) => g.id === selectedGroupId);
+  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
 
   return (
     <>
@@ -119,19 +105,29 @@ export function ChatSidebar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-72">
-              {mockGroups.map((group) => (
-                <DropdownMenuItem
-                  key={group.id}
-                  onClick={() => onGroupSelect?.(group.id)}
-                >
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">
-                      {group.organizationName}
-                    </span>
-                    <span className="text-sm font-medium">{group.name}</span>
-                  </div>
+              {isLoadingGroups ? (
+                <DropdownMenuItem disabled>
+                  <span className="text-sm text-muted-foreground">Loading groups...</span>
                 </DropdownMenuItem>
-              ))}
+              ) : groups.length === 0 ? (
+                <DropdownMenuItem disabled>
+                  <span className="text-sm text-muted-foreground">No groups available</span>
+                </DropdownMenuItem>
+              ) : (
+                groups.map((group) => (
+                  <DropdownMenuItem
+                    key={group.id}
+                    onClick={() => onGroupSelect?.(group.id)}
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground">
+                        {group.organizationName}
+                      </span>
+                      <span className="text-sm font-medium">{group.name}</span>
+                    </div>
+                  </DropdownMenuItem>
+                ))
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 

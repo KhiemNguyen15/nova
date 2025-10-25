@@ -9,14 +9,16 @@ import {
   checkUserAccessToConversation,
   updateConversationTitle,
 } from "@/lib/db/queries";
-
-// TODO: Replace with actual Auth0 user session
-function getMockUserId(): string {
-  return "mock-user-id";
-}
+import { getAuthenticatedUser } from "@/lib/auth-helpers";
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate user
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.redirect(new URL('/api/auth/login', request.url));
+    }
+
     const body = await request.json();
     const { message, conversationId, groupId } = body;
 
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = getMockUserId();
+    const userId = user.id;
 
     // Check user access to group
     const hasAccess = await checkUserAccessToGroup(userId, groupId);
