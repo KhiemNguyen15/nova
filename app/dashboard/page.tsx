@@ -9,6 +9,7 @@ import { Sparkles, Users, FileText, MessageSquare, ArrowRight, Upload, Settings 
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { getUserOrganizations, getUserConversations, getUserDocumentsCount } from '@/lib/db/queries';
 
 export default async function DashboardPage() {
   // Get the session from Auth0
@@ -31,6 +32,13 @@ export default async function DashboardPage() {
   }
 
   const user = session.user;
+
+  // Fetch dashboard stats
+  const [organizations, conversations, documentsCount] = await Promise.all([
+    getUserOrganizations(existingUser.id),
+    getUserConversations(existingUser.id),
+    getUserDocumentsCount(existingUser.id),
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
@@ -59,8 +67,10 @@ export default async function DashboardPage() {
               <Users className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">No organizations yet</p>
+              <div className="text-2xl font-bold">{organizations.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {organizations.length === 0 ? 'No organizations yet' : `Active organization${organizations.length > 1 ? 's' : ''}`}
+              </p>
             </CardContent>
           </Card>
 
@@ -71,8 +81,10 @@ export default async function DashboardPage() {
               <FileText className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">Upload your first document</p>
+              <div className="text-2xl font-bold">{documentsCount}</div>
+              <p className="text-xs text-muted-foreground">
+                {documentsCount === 0 ? 'Upload your first document' : 'In your knowledge base'}
+              </p>
             </CardContent>
           </Card>
 
@@ -83,8 +95,10 @@ export default async function DashboardPage() {
               <MessageSquare className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">Start chatting</p>
+              <div className="text-2xl font-bold">{conversations.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {conversations.length === 0 ? 'Start chatting' : 'Total conversation sessions'}
+              </p>
             </CardContent>
           </Card>
 

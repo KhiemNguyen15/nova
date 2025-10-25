@@ -13,7 +13,7 @@ import {
   type NewConversation,
   type NewMessage,
 } from "./schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 // ============= User Queries =============
 
@@ -210,6 +210,22 @@ export async function getDocumentsByOrganization(organizationId: string) {
     orderBy: [desc(documents.uploadedAt)],
   });
   return result;
+}
+
+export async function getUserDocumentsCount(userId: string): Promise<number> {
+  // Get all organizations the user belongs to
+  const userOrgs = await getUserOrganizations(userId);
+  const orgIds = userOrgs.map(org => org.id);
+
+  if (orgIds.length === 0) return 0;
+
+  // Count documents across all user's organizations in a single query
+  const result = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(documents)
+    .where(inArray(documents.organizationId, orgIds));
+
+  return result[0]?.count || 0;
 }
 
 export async function getDocumentById(documentId: string) {
