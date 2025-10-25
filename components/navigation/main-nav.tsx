@@ -41,7 +41,16 @@ export function MainNav() {
           {isLoading ? (
             <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
           ) : user ? (
-            <UserNav />
+            <>
+              <Button
+                size="sm"
+                asChild
+                className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
+              >
+                <Link href="/chat">Chat Now</Link>
+              </Button>
+              <UserNav />
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
