@@ -4,221 +4,131 @@
  * This module handles interactions with Cloudflare's AI Search AutoRAG REST API
  * for document embedding and retrieval-augmented generation.
  *
+ * API Documentation: https://developers.cloudflare.com/autorag/
+ *
  * Environment Variables Required:
  * - CLOUDFLARE_ACCOUNT_ID: Your Cloudflare account ID
- * - CLOUDFLARE_API_TOKEN: API token with AI Search permissions
+ * - CLOUDFLARE_API_KEY: API key with AutoRAG permissions
  */
 
 export interface CloudflareAIConfig {
   accountId: string;
-  apiToken: string;
+  apiKey: string;
 }
 
-export interface SearchResult {
-  id: string;
-  score: number;
-  metadata: Record<string, unknown>;
-  content: string;
-}
-
-export interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export interface ChatCompletionRequest {
-  messages: ChatMessage[];
-  indexId: string;
-  stream?: boolean;
-  maxTokens?: number;
-  temperature?: number;
-}
-
-export interface ChatCompletionResponse {
-  id: string;
+export interface AutoRAGSearchResult {
   object: string;
-  created: number;
-  model: string;
-  choices: Array<{
-    index: number;
-    message: ChatMessage;
-    finish_reason: string;
+  search_query: string;
+  response: string;
+  data: Array<{
+    id?: string;
+    score?: number;
+    metadata?: Record<string, unknown>;
+    text?: string;
   }>;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
+  has_more: boolean;
+  next_page: string | null;
+}
+
+export interface AutoRAGResponse {
+  success: boolean;
+  result: AutoRAGSearchResult;
+  errors?: Array<{ code: number; message: string }>;
+  messages?: Array<{ code: number; message: string }>;
 }
 
 export class CloudflareAIClient {
   private accountId: string;
-  private apiToken: string;
+  private apiKey: string;
   private baseUrl: string;
 
   constructor(config: CloudflareAIConfig) {
     this.accountId = config.accountId;
-    this.apiToken = config.apiToken;
+    this.apiKey = config.apiKey;
     this.baseUrl = `https://api.cloudflare.com/client/v4/accounts/${this.accountId}`;
   }
 
   /**
-   * Send a chat completion request with RAG
+   * Query AutoRAG with a simple text query
+   * This returns the AI-generated response with retrieved document context
    */
-  async chatCompletion(request: ChatCompletionRequest): Promise<Response> {
-    const url = `${this.baseUrl}/ai/search/chat`;
+  async query(ragId: string, query: string): Promise<AutoRAGResponse> {
+    const url = `${this.baseUrl}/autorag/rags/${ragId}/ai-search`;
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${this.apiToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messages: request.messages,
-        index_id: request.indexId,
-        stream: request.stream ?? false,
-        max_tokens: request.maxTokens ?? 1024,
-        temperature: request.temperature ?? 0.7,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Cloudflare AI Search API error: ${response.status} ${error}`);
-    }
-
-    return response;
-  }
-
-  /**
-   * Stream chat completion with RAG
-   */
-  async *streamChatCompletion(
-    request: ChatCompletionRequest
-  ): AsyncGenerator<string, void, unknown> {
-    const response = await this.chatCompletion({
-      ...request,
-      stream: true,
-    });
-
-    if (!response.body) {
-      throw new Error("Response body is null");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+    console.log(`[Cloudflare AutoRAG] Making request to: ${url}`);
+    console.log(`[Cloudflare AutoRAG] Query: ${query.substring(0, 100)}...`);
 
     try {
-      while (true) {
-        const { done, value } = await reader.read();
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query }),
+      });
 
-        if (done) break;
+      console.log(`[Cloudflare AutoRAG] Response status: ${response.status}`);
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[Cloudflare AutoRAG] Error response: ${errorText}`);
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-
-            if (data === "[DONE]") {
-              return;
-            }
-
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
-
-              if (content) {
-                yield content;
-              }
-            } catch (e) {
-              // Skip invalid JSON lines
-              continue;
-            }
-          }
+        // Try to parse as JSON for better error messages
+        try {
+          const errorJson = JSON.parse(errorText);
+          const errorMessages = errorJson.errors?.map((e: any) => e.message).join(", ");
+          throw new Error(`Cloudflare AutoRAG API error (${response.status}): ${errorMessages || errorText}`);
+        } catch {
+          throw new Error(`Cloudflare AutoRAG API error (${response.status}): ${errorText}`);
         }
       }
-    } finally {
-      reader.releaseLock();
+
+      const data: AutoRAGResponse = await response.json();
+      console.log(`[Cloudflare AutoRAG] Success: ${data.success}`);
+      console.log(`[Cloudflare AutoRAG] Response length: ${data.result?.response?.length || 0} chars`);
+
+      if (!data.success) {
+        const errorMsg = data.errors?.map(e => e.message).join(", ") || "Unknown error";
+        throw new Error(`AutoRAG request failed: ${errorMsg}`);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`[Cloudflare AutoRAG] Request failed: ${error.message}`);
+      }
+      throw error;
     }
   }
 
   /**
-   * Search documents in an index
+   * Stream AutoRAG response word by word
+   * Note: Cloudflare AutoRAG may not support streaming - this simulates it by chunking the response
    */
-  async search(indexId: string, query: string, limit = 10): Promise<SearchResult[]> {
-    const url = `${this.baseUrl}/ai/search/indexes/${indexId}/search`;
+  async *streamQuery(ragId: string, query: string): AsyncGenerator<string, void, unknown> {
+    const response = await this.query(ragId, query);
+    const fullResponse = response.result.response;
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${this.apiToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query,
-        limit,
-      }),
-    });
+    // Simulate streaming by yielding words with small delays
+    // If Cloudflare adds true streaming support, update this method
+    const words = fullResponse.split(" ");
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      yield i === words.length - 1 ? word : word + " ";
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Cloudflare AI Search API error: ${response.status} ${error}`);
-    }
-
-    const data = await response.json();
-    return data.results || [];
-  }
-
-  /**
-   * Upload a document to an index
-   */
-  async uploadDocument(
-    indexId: string,
-    documentId: string,
-    content: string,
-    metadata?: Record<string, unknown>
-  ): Promise<void> {
-    const url = `${this.baseUrl}/ai/search/indexes/${indexId}/documents`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${this.apiToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: documentId,
-        content,
-        metadata: metadata || {},
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to upload document: ${response.status} ${error}`);
+      // Small delay to simulate streaming (can be removed if real streaming is available)
+      await new Promise(resolve => setTimeout(resolve, 30));
     }
   }
 
   /**
-   * Delete a document from an index
+   * Get retrieved documents without the AI response
+   * Useful for debugging or showing sources
    */
-  async deleteDocument(indexId: string, documentId: string): Promise<void> {
-    const url = `${this.baseUrl}/ai/search/indexes/${indexId}/documents/${documentId}`;
-
-    const response = await fetch(url, {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${this.apiToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to delete document: ${response.status} ${error}`);
-    }
+  async getRetrievedDocuments(ragId: string, query: string) {
+    const response = await this.query(ragId, query);
+    return response.result.data;
   }
 }
 
@@ -228,15 +138,15 @@ let aiClient: CloudflareAIClient | null = null;
 export function getCloudflareAIClient(): CloudflareAIClient {
   if (!aiClient) {
     const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+    const apiKey = process.env.CLOUDFLARE_API_KEY;
 
-    if (!accountId || !apiToken) {
+    if (!accountId || !apiKey) {
       throw new Error(
-        "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN environment variables must be set"
+        "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_KEY environment variables must be set"
       );
     }
 
-    aiClient = new CloudflareAIClient({ accountId, apiToken });
+    aiClient = new CloudflareAIClient({ accountId, apiKey });
   }
 
   return aiClient;

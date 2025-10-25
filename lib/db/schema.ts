@@ -44,6 +44,7 @@ export const groups = pgTable("groups", {
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
+  cloudflareRagId: text("cloudflare_rag_id"), // Cloudflare AutoRAG instance ID for this group
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

@@ -54,10 +54,10 @@ Add these to your `.env.local` file:
 # Neon Postgres Database
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 
-# Cloudflare AI Search
+# Cloudflare AutoRAG
 CLOUDFLARE_ACCOUNT_ID="your-account-id"
-CLOUDFLARE_API_TOKEN="your-api-token"
-CLOUDFLARE_DEFAULT_INDEX_ID="your-index-id"
+CLOUDFLARE_API_KEY="your-api-key"
+CLOUDFLARE_DEFAULT_RAG_ID="your-default-rag-id"
 
 # Auth0 (TODO: To be integrated)
 AUTH0_SECRET="your-secret"
@@ -66,6 +66,8 @@ AUTH0_ISSUER_BASE_URL="https://your-domain.auth0.com"
 AUTH0_CLIENT_ID="your-client-id"
 AUTH0_CLIENT_SECRET="your-client-secret"
 ```
+
+**Note:** The `CLOUDFLARE_DEFAULT_RAG_ID` is a fallback. Each group should have its own `cloudflareRagId` stored in the database.
 
 ## Database Setup
 
@@ -128,10 +130,14 @@ The schema includes the following tables:
 - ✅ Query functions for all operations
 - ✅ Access control checks
 
-### 5. Cloudflare AI Integration
-- ✅ AutoRAG client with streaming support
-- ✅ Document search functionality
-- ✅ Upload/delete document methods
+### 5. Cloudflare AutoRAG Integration
+- ✅ AutoRAG client using correct API structure (`/autorag/rags/$ID/ai-search`)
+- ✅ Simulated streaming (word-by-word delivery of responses)
+- ✅ Conversation context handling (last 10 messages)
+- ✅ Proper error handling with Cloudflare API response format
+- ✅ Retrieved document access method
+
+**Note:** The implementation uses simulated streaming since Cloudflare AutoRAG may not support true SSE streaming. If streaming becomes available, update the `streamQuery` method in `lib/cloudflare-ai.ts`.
 
 ## TODO: Remaining Integrations
 
@@ -155,10 +161,12 @@ The chat pages currently use a hardcoded `groupId`. Update:
 - `app/chat/[conversationId]/page.tsx:26` - Get groupId from conversation or context
 - `components/chat/ChatSidebar.tsx:39-48` - Replace `mockGroups` with actual user groups
 
-### Cloudflare Index Management
-- Update `app/api/chat/route.ts:91` to fetch the actual Cloudflare index ID for each group from the database
-- Implement index creation when groups are created
-- Link documents to group indexes
+### Cloudflare AutoRAG Management
+- Update `app/api/chat/route.ts:89` to fetch the actual Cloudflare RAG ID for each group from the database
+  - Use `group.cloudflareRagId` instead of the default environment variable
+- Implement RAG instance creation when groups are created
+- Link documents to group RAG instances
+- Store the RAG ID in the `groups.cloudflareRagId` field
 
 ### Additional Features to Consider
 - Message editing/deletion
@@ -181,20 +189,28 @@ The chat pages currently use a hardcoded `groupId`. Update:
    ```
 
 2. **Set up environment variables:**
-   Create `.env.local` with required variables
+   Create `.env.local` with required variables (see Environment Variables section above)
 
-3. **Push database schema:**
+3. **Test Cloudflare API connection:**
+   ```bash
+   pnpm test:cloudflare
+   ```
+   This verifies your Cloudflare credentials are correct before running the full app.
+
+4. **Push database schema:**
    ```bash
    pnpm db:push
    ```
 
-4. **Run development server:**
+5. **Run development server:**
    ```bash
    pnpm dev
    ```
 
-5. **Access the chat interface:**
+6. **Access the chat interface:**
    Navigate to `http://localhost:3000/chat`
+
+**Note:** See `TESTING_CLOUDFLARE.md` for comprehensive testing instructions and troubleshooting.
 
 ## Component API Reference
 

@@ -81,22 +81,24 @@ export async function POST(request: NextRequest) {
       currentConversationId
     );
 
-    // Prepare messages for AI (limit to last 10 for context)
-    const aiMessages = conversationMessages
-      .slice(-10)
-      .map((msg) => ({
-        role: msg.role as "user" | "assistant",
-        content: msg.content,
-      }));
-
-    // Add the new message to the context
-    aiMessages.push({ role: "user", content: message });
-
     // Get Cloudflare AI client
     const aiClient = getCloudflareAIClient();
 
-    // TODO: Get the actual Cloudflare index ID for this group from the database
-    const indexId = process.env.CLOUDFLARE_DEFAULT_INDEX_ID || "default-index";
+    // TODO: Get the actual Cloudflare RAG ID for this group from the database
+    // Each group should have its own RAG instance with its documents
+    const ragId = process.env.CLOUDFLARE_DEFAULT_RAG_ID || "default-rag-id";
+
+    // Build context from conversation history (last 5 exchanges for brevity)
+    const recentMessages = conversationMessages.slice(-10);
+    let contextQuery = message;
+
+    // If there's conversation history, prepend it to provide context
+    if (recentMessages.length > 0) {
+      const conversationContext = recentMessages
+        .map((msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`)
+        .join("\n");
+      contextQuery = `Previous conversation:\n${conversationContext}\n\nCurrent question: ${message}`;
+    }
 
     // Stream the response
     const encoder = new TextEncoder();
@@ -112,12 +114,8 @@ export async function POST(request: NextRequest) {
 
           let fullResponse = "";
 
-          // Stream AI response
-          for await (const chunk of aiClient.streamChatCompletion({
-            messages: aiMessages,
-            indexId,
-            stream: true,
-          })) {
+          // Stream AI response using AutoRAG
+          for await (const chunk of aiClient.streamQuery(ragId, contextQuery)) {
             fullResponse += chunk;
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
