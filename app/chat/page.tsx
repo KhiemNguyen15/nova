@@ -8,17 +8,20 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChat } from "@/hooks/useChat";
+import { useGroups } from "@/hooks/useGroups";
 import { Sparkles, Loader2 } from "lucide-react";
 
 export default function ChatPage() {
   const router = useRouter();
   const { user, isLoading: isLoadingUser } = useUser();
+  const { groups, isLoading: isLoadingGroups } = useGroups();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // TODO: Get groupId from selected context
-  const groupId = "group-1";
+  // Use first available group as default
+  const groupId = groups.length > 0 ? groups[0].id : null;
+  const selectedGroup = groups.length > 0 ? groups[0] : null;
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function ChatPage() {
     sendMessage,
     stop,
   } = useChat({
-    groupId,
+    groupId: groupId || '', // Pass empty string if no group yet
     onError: (error) => {
       console.error("Chat error:", error);
       // TODO: Show error toast
@@ -44,11 +47,12 @@ export default function ChatPage() {
   });
 
   // Redirect to conversation URL when a new conversation is created
+  // Only redirect after streaming is complete (not while streaming)
   useEffect(() => {
-    if (conversationId && messages.length > 0) {
+    if (conversationId && messages.length > 0 && !isStreaming) {
       router.push(`/chat/${conversationId}`);
     }
-  }, [conversationId, messages.length, router]);
+  }, [conversationId, messages.length, isStreaming, router]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -61,8 +65,8 @@ export default function ChatPage() {
     }
   };
 
-  // Show loading state while checking authentication
-  if (isLoadingUser) {
+  // Show loading state while checking authentication or loading groups
+  if (isLoadingUser || isLoadingGroups) {
     return (
       <div className="flex flex-col h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
@@ -76,11 +80,25 @@ export default function ChatPage() {
     return null;
   }
 
+  // Show message if no groups available
+  if (!groupId || !selectedGroup) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8">
+        <Sparkles className="h-16 w-16 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-bold mb-2">No Groups Available</h2>
+        <p className="text-muted-foreground text-center max-w-md">
+          You need to be a member of at least one group to start chatting.
+          Please contact your organization admin to be added to a group.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader
-        groupName="Engineering Team"
-        organizationName="Acme Corp"
+        groupName={selectedGroup.name}
+        organizationName={selectedGroup.organizationName}
         onMenuClick={() => setIsSidebarOpen(true)}
       />
 

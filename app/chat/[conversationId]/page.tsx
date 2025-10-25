@@ -22,11 +22,9 @@ export default function ConversationPage({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [groupName, setGroupName] = useState<string>("Loading...");
   const [organizationName, setOrganizationName] = useState<string>("");
+  const [groupId, setGroupId] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // TODO: Get groupId from conversation or selected context
-  const groupId = "group-1";
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -45,7 +43,7 @@ export default function ConversationPage({
     stop,
   } = useChat({
     conversationId,
-    groupId,
+    groupId: groupId || '', // Will be set when conversation loads
     onError: (error) => {
       console.error("Chat error:", error);
       // TODO: Show error toast
@@ -66,6 +64,7 @@ export default function ConversationPage({
           if (data.conversation) {
             setGroupName(data.conversation.group.name);
             setOrganizationName(data.conversation.group.organizationName);
+            setGroupId(data.conversation.groupId);
           }
         })
         .catch((error) => {

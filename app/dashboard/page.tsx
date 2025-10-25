@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { auth0 } from '@/lib/auth0'; // your Auth0 client
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MainNav } from '@/components/navigation/main-nav';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Users, FileText, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Users, FileText, MessageSquare, ArrowRight, Upload, Settings } from 'lucide-react';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -100,7 +102,94 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        {/* ... keep your cards here ... */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Start New Chat - Primary Action */}
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Start New Chat
+              </CardTitle>
+              <CardDescription>
+                Begin a conversation with Nova AI and get instant answers from your knowledge base
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                asChild
+                className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+              >
+                <Link href="/chat">
+                  Start Chatting
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* View Conversations */}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                View Conversations
+              </CardTitle>
+              <CardDescription>
+                Browse your conversation history and continue previous discussions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/chat">
+                  View All Conversations
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Upload Documents */}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Upload className="w-5 h-5" />
+                Upload Documents
+              </CardTitle>
+              <CardDescription>
+                Add new documents to your organization's knowledge base
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/documents/sources">
+                  Manage Documents
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Team Settings */}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Team Settings
+              </CardTitle>
+              <CardDescription>
+                Manage your team members, groups, and organization settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/settings">
+                  Open Settings
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

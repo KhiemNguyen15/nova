@@ -117,8 +117,8 @@ export class CloudflareAIClient {
       const word = words[i];
       yield i === words.length - 1 ? word : word + " ";
 
-      // Small delay to simulate streaming (can be removed if real streaming is available)
-      await new Promise(resolve => setTimeout(resolve, 30));
+      // Small delay to simulate streaming (reduced from 30ms to 10ms for faster display)
+      await new Promise(resolve => setTimeout(resolve, 10));
     }
   }
 
@@ -138,11 +138,11 @@ let aiClient: CloudflareAIClient | null = null;
 export function getCloudflareAIClient(): CloudflareAIClient {
   if (!aiClient) {
     const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-    const apiKey = process.env.CLOUDFLARE_API_KEY;
+    const apiKey = process.env.CLOUDFLARE_AI_SEARCH_API_KEY;
 
     if (!accountId || !apiKey) {
       throw new Error(
-        "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_KEY environment variables must be set"
+        "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_AI_SEARCH_API_KEY environment variables must be set"
       );
     }
 

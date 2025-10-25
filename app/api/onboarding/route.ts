@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 import { db } from '@/lib/db';
-import { users, organizations, organizationMembers } from '@/lib/db/schema';
+import { users, organizations, organizationMembers, groups, groupMembers } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
@@ -76,13 +76,31 @@ export async function POST(request: Request) {
         role: 'admin',
       });
 
-      return { user: newUser, organization };
+      // Create default "General" group for the organization
+      const [defaultGroup] = await tx
+        .insert(groups)
+        .values({
+          name: 'General',
+          description: 'Default group for general discussions',
+          organizationId: organization.id,
+          cloudflareRagId: process.env.CLOUDFLARE_DEFAULT_RAG_ID || null,
+        })
+        .returning();
+
+      // Add user to the default group
+      await tx.insert(groupMembers).values({
+        userId: newUser.id,
+        groupId: defaultGroup.id,
+      });
+
+      return { user: newUser, organization, group: defaultGroup };
     });
 
     return NextResponse.json({
       success: true,
       user: result.user,
       organization: result.organization,
+      group: result.group,
     });
   } catch (error) {
     console.error('Onboarding error:', error);
