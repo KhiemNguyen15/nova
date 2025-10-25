@@ -93,13 +93,13 @@
 
 .dark {
   /* Space Theme - Dark Mode (Deep Space) */
-  --background: oklch(0.08 0.01 270);
+  --background: oklch(0.08 0.01 270 / 0.85);
   --foreground: oklch(0.95 0.01 270);
 
-  /* Cards with subtle cosmic glow */
-  --card: oklch(0.12 0.02 270 / 0.8);
+  /* Cards with subtle cosmic glow - more transparent to see stars */
+  --card: oklch(0.12 0.02 270 / 0.4);
   --card-foreground: oklch(0.95 0.01 270);
-  --popover: oklch(0.10 0.02 270);
+  --popover: oklch(0.10 0.02 270 / 0.5);
   --popover-foreground: oklch(0.95 0.01 270);
 
   /* Vibrant Cosmic Purple Primary */
@@ -129,11 +129,11 @@
   --chart-4: oklch(0.60 0.20 240);
   --chart-5: oklch(0.80 0.22 320);
 
-  --sidebar: oklch(0.10 0.02 270 / 0.95);
+  --sidebar: oklch(0.10 0.02 270 / 0.6);
   --sidebar-foreground: oklch(0.95 0.01 270);
   --sidebar-primary: oklch(0.70 0.25 285);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.18 0.02 270);
+  --sidebar-accent: oklch(0.18 0.02 270 / 0.5);
   --sidebar-accent-foreground: oklch(0.95 0.01 270);
   --sidebar-border: oklch(0.95 0.01 270 / 0.15);
   --sidebar-ring: oklch(0.70 0.25 285);
@@ -145,5 +145,75 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(ellipse at 20% 30%, rgba(120, 80, 200, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(150, 100, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(100, 150, 255, 0.05) 0%, transparent 70%);
+    background-attachment: fixed;
+  }
+}
+
+/* Enhance space theme with subtle nebula effects */
+@layer utilities {
+  .space-glow {
+    box-shadow: 0 0 20px rgba(120, 80, 200, 0.3);
+  }
+
+  .nebula-gradient {
+    background: linear-gradient(
+      135deg,
+      rgba(120, 80, 200, 0.1) 0%,
+      rgba(150, 100, 255, 0.05) 50%,
+      rgba(100, 150, 255, 0.1) 100%
+    );
+  }
+
+  /* Glass effect for cards to see stars through */
+  .glass-card {
+    background: rgba(18, 18, 27, 0.4) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .glass-card-light {
+    background: rgba(18, 18, 27, 0.3) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* Override card backgrounds to be more transparent */
+  [class*="bg-card"] {
+    backdrop-filter: blur(10px);
+  }
+
+  [class*="bg-card/50"] {
+    background: rgba(18, 18, 27, 0.35) !important;
+  }
+
+  [class*="bg-card/60"] {
+    background: rgba(18, 18, 27, 0.4) !important;
+  }
+
+  [class*="bg-card/70"] {
+    background: rgba(18, 18, 27, 0.45) !important;
+  }
+
+  [class*="bg-card/80"] {
+    background: rgba(18, 18, 27, 0.5) !important;
+  }
+
+  /* Enhance backdrop blur for all cards */
+  [class*="backdrop-blur-sm"] {
+    backdrop-filter: blur(8px) !important;
+  }
+
+  [class*="backdrop-blur-md"] {
+    backdrop-filter: blur(12px) !important;
+  }
+
+  /* Make primary/accent gradient backgrounds more transparent */
+  [class*="from-primary"][class*="to-primary"],
+  [class*="from-primary"][class*="via-accent"] {
+    opacity: 0.9;
   }
 }

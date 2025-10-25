@@ -10,7 +10,7 @@ export interface ChatHeaderProps {
 
 export function ChatHeader({ groupName, organizationName, onMenuClick }: ChatHeaderProps) {
   return (
-    <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+    <header className="border-b border-border/50 bg-background/40 backdrop-blur-md sticky top-0 z-10">
       <div className="flex items-center gap-4 px-4 py-3">
         {onMenuClick && (
           <Button

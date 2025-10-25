@@ -10,7 +10,7 @@ export function MainNav() {
   const { user, isLoading } = useUser();
 
   return (
-    <header className="border-b border-border/50 backdrop-blur-sm sticky top-0 z-50 bg-background/80">
+    <header className="border-b border-border/50 backdrop-blur-md sticky top-0 z-50 bg-background/40">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
