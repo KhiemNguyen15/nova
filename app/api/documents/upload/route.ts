@@ -5,7 +5,11 @@ import {
   checkUserAccessToOrganization,
   assignDocumentToGroups,
   getGroupsByOrganization,
+  updateDocumentEmbeddingStatus,
 } from "@/lib/db/queries";
+import { db } from "@/lib/db";
+import { documents } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { generateR2Key, uploadToR2 } from "@/lib/r2";
 import { getCloudflareAIClient } from "@/lib/cloudflare-ai";
 
@@ -129,13 +133,26 @@ export async function POST(request: NextRequest) {
         const syncResult = await aiClient.syncDocumentsToAutoRAG(ragId);
         syncJobId = syncResult.jobId;
         console.log(`[Upload] AutoRAG sync triggered. Job ID: ${syncJobId}`);
+
+        // Update document status to completed after successful sync trigger
+        await updateDocumentEmbeddingStatus(document.id, 'completed');
+        console.log(`[Upload] Document ${document.id} marked as completed`);
       } else {
         console.warn('[Upload] CLOUDFLARE_DEFAULT_RAG_ID not set, skipping AutoRAG sync');
+        // Still mark as completed even without sync (document is uploaded to R2)
+        await updateDocumentEmbeddingStatus(document.id, 'completed');
       }
     } catch (syncError) {
       console.error('[Upload] AutoRAG sync failed:', syncError);
+      // Mark as failed if sync fails
+      await updateDocumentEmbeddingStatus(document.id, 'failed');
       // Don't fail the upload if sync fails
     }
+
+    // Fetch the updated document to get the latest embedding status
+    const updatedDocument = await db.query.documents.findFirst({
+      where: eq(documents.id, document.id),
+    });
 
     return NextResponse.json({
       document: {
@@ -144,7 +161,7 @@ export async function POST(request: NextRequest) {
         fileType: document.fileType,
         fileSize: document.fileSize,
         uploadedAt: document.uploadedAt,
-        embeddingStatus: document.embeddingStatus,
+        embeddingStatus: updatedDocument?.embeddingStatus || document.embeddingStatus,
       },
       syncJobId,
     });

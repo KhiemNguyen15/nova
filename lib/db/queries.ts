@@ -381,6 +381,18 @@ export async function deleteDocument(documentId: string) {
   return result[0];
 }
 
+export async function updateDocumentEmbeddingStatus(
+  documentId: string,
+  status: "pending" | "completed" | "failed"
+) {
+  const result = await db
+    .update(documents)
+    .set({ embeddingStatus: status })
+    .where(eq(documents.id, documentId))
+    .returning();
+  return result[0];
+}
+
 export async function assignDocumentToGroups(
   documentId: string,
   groupIds: string[]
