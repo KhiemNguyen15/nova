@@ -68,6 +68,21 @@ export interface AutoRAGResponse {
   messages?: Array<{ code: number; message: string }>;
 }
 
+export type FilterValue = string | number | boolean;
+
+export interface AutoRAGFilter {
+  key: string;
+  type: "eq" | "ne" | "gt" | "gte" | "lt" | "lte";
+  value: FilterValue;
+}
+
+export interface AutoRAGFilterGroup {
+  filters: AutoRAGFilter[];
+  type: "and" | "or";
+}
+
+export type AutoRAGFilters = AutoRAGFilter | AutoRAGFilterGroup;
+
 export class CloudflareAIClient {
   private accountId: string;
   private apiKey: string;
@@ -83,23 +98,32 @@ export class CloudflareAIClient {
    * Query AutoRAG with a simple text query
    * This returns the AI-generated response with retrieved document context
    */
-  async query(ragId: string, query: string): Promise<AutoRAGResponse> {
+  async query(ragId: string, query: string, filters?: AutoRAGFilters): Promise<AutoRAGResponse> {
     const url = `${this.baseUrl}/autorag/rags/${ragId}/ai-search`;
 
     console.log(`[Cloudflare AutoRAG] Making request to: ${url}`);
     console.log(`[Cloudflare AutoRAG] Query: ${query.substring(0, 100)}...`);
+    if (filters) {
+      console.log(`[Cloudflare AutoRAG] Filters:`, JSON.stringify(filters));
+    }
 
     try {
+      const requestBody: Record<string, any> = {
+        query,
+        system_prompt: NOVA_SYSTEM_PROMPT,
+      };
+
+      if (filters) {
+        requestBody.filters = filters;
+      }
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          query,
-          system_prompt: NOVA_SYSTEM_PROMPT
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       console.log(`[Cloudflare AutoRAG] Response status: ${response.status}`);
@@ -140,8 +164,8 @@ export class CloudflareAIClient {
    * Stream AutoRAG response word by word
    * Note: Cloudflare AutoRAG may not support streaming - this simulates it by chunking the response
    */
-  async *streamQuery(ragId: string, query: string): AsyncGenerator<string, void, unknown> {
-    const response = await this.query(ragId, query);
+  async *streamQuery(ragId: string, query: string, filters?: AutoRAGFilters): AsyncGenerator<string, void, unknown> {
+    const response = await this.query(ragId, query, filters);
     const fullResponse = response.result.response;
 
     // Simulate streaming by yielding words with small delays
@@ -160,8 +184,8 @@ export class CloudflareAIClient {
    * Get retrieved documents without the AI response
    * Useful for debugging or showing sources
    */
-  async getRetrievedDocuments(ragId: string, query: string) {
-    const response = await this.query(ragId, query);
+  async getRetrievedDocuments(ragId: string, query: string, filters?: AutoRAGFilters) {
+    const response = await this.query(ragId, query, filters);
     return response.result.data;
   }
 

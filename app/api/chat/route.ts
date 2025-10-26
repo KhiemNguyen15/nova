@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareAIClient } from "@/lib/cloudflare-ai";
+import type { AutoRAGFilter } from "@/lib/cloudflare-ai";
 import {
   createConversation,
   createMessage,
@@ -8,6 +9,7 @@ import {
   getConversationMessages,
   checkUserAccessToConversation,
   updateConversationTitle,
+  getGroupById,
 } from "@/lib/db/queries";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
 
@@ -83,12 +85,28 @@ export async function POST(request: NextRequest) {
       currentConversationId
     );
 
+    // Get group details to obtain organization ID
+    const group = await getGroupById(groupId);
+    if (!group) {
+      return NextResponse.json(
+        { error: "Group not found" },
+        { status: 404 }
+      );
+    }
+
     // Get Cloudflare AI client
     const aiClient = getCloudflareAIClient();
 
     // TODO: Get the actual Cloudflare RAG ID for this group from the database
     // Each group should have its own RAG instance with its documents
     const ragId = process.env.CLOUDFLARE_DEFAULT_RAG_ID || "default-rag-id";
+
+    // Create organization filter to ensure only documents from this org are accessed
+    const organizationFilter: AutoRAGFilter = {
+      key: "folder",
+      type: "eq",
+      value: group.organizationId + "/",
+    };
 
     // Build context from conversation history (last 5 exchanges for brevity)
     const recentMessages = conversationMessages.slice(-10);
@@ -116,8 +134,8 @@ export async function POST(request: NextRequest) {
 
           let fullResponse = "";
 
-          // Stream AI response using AutoRAG
-          for await (const chunk of aiClient.streamQuery(ragId, contextQuery)) {
+          // Stream AI response using AutoRAG with organization filter
+          for await (const chunk of aiClient.streamQuery(ragId, contextQuery, organizationFilter)) {
             fullResponse += chunk;
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
