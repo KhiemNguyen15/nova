@@ -95,14 +95,14 @@ export default function ConversationPage({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       <ChatHeader
         groupName={groupName}
         organizationName={organizationName}
         onMenuClick={() => setIsSidebarOpen(true)}
       />
 
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 overflow-auto" ref={scrollAreaRef}>
         {isLoading && messages.length === 0 ? (
           <div className="max-w-4xl mx-auto space-y-6 p-4">
             {[...Array(3)].map((_, i) => (

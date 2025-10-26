@@ -95,14 +95,14 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-transparent">
+    <div className="flex flex-col h-full bg-transparent overflow-hidden">
       <ChatHeader
         groupName={selectedGroup.name}
         organizationName={selectedGroup.organizationName}
         onMenuClick={() => setIsSidebarOpen(true)}
       />
 
-      <ScrollArea className="flex-1 bg-none" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 overflow-auto" ref={scrollAreaRef}>
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6">
