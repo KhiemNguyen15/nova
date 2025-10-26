@@ -20,7 +20,6 @@ import {
   Sparkles,
   LayoutDashboard,
   FileText,
-  Users,
   Settings,
   X,
 } from "lucide-react";
@@ -172,19 +171,9 @@ export function ChatSidebar({
             className="w-full justify-start"
             asChild
           >
-            <Link href="/documents/sources">
+            <Link href="/documents">
               <FileText className="h-4 w-4 mr-2" />
               Documents
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            asChild
-          >
-            <Link href="/team">
-              <Users className="h-4 w-4 mr-2" />
-              Team
             </Link>
           </Button>
           <Button
