@@ -6,7 +6,8 @@ export interface Group {
   description: string | null;
   cloudflareRagId: string | null;
   organizationId: string;
-  organizationName: string;
+  organizationName?: string;
+  role?: 'admin' | 'manager' | 'member' | 'viewer';
   createdAt: Date;
   updatedAt: Date;
 }

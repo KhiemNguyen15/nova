@@ -18,8 +18,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Users, Plus, Pencil, Trash2, Loader2, Copy, Check, Link as LinkIcon } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Loader2, Copy, Check, Link as LinkIcon, Shield, User } from "lucide-react";
 import { useOrganizationRole } from "@/hooks/useOrganizationRole";
+import { Badge } from "@/components/ui/badge";
 
 interface Organization {
   id: string;
@@ -32,6 +33,7 @@ interface Group {
   name: string;
   description: string | null;
   organizationId: string;
+  role: 'admin' | 'manager' | 'member' | 'viewer';
 }
 
 export function GroupSettings() {
@@ -298,7 +300,7 @@ export function GroupSettings() {
                   onUpdate={updateGroup}
                   onDelete={deleteGroup}
                   onGenerateInvite={generateInvite}
-                  isAdmin={isAdmin}
+                  isGroupAdmin={group.role === 'admin'}
                 />
               ))}
 
@@ -386,7 +388,7 @@ function GroupCard({
   onUpdate,
   onDelete,
   onGenerateInvite,
-  isAdmin,
+  isGroupAdmin,
 }: {
   group: Group;
   isEditing: boolean;
@@ -395,13 +397,32 @@ function GroupCard({
   onUpdate: (id: string, name: string, description: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onGenerateInvite: (id: string) => Promise<void>;
-  isAdmin: boolean;
+  isGroupAdmin: boolean;
 }) {
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description || "");
 
   const handleUpdate = async () => {
     await onUpdate(group.id, name, description);
+  };
+
+  const getRoleBadge = (role: string) => {
+    const roleConfig = {
+      admin: { label: 'Admin', variant: 'default' as const, icon: Shield },
+      manager: { label: 'Manager', variant: 'secondary' as const, icon: Shield },
+      member: { label: 'Member', variant: 'outline' as const, icon: User },
+      viewer: { label: 'Viewer', variant: 'outline' as const, icon: User },
+    };
+
+    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.member;
+    const Icon = config.icon;
+
+    return (
+      <Badge variant={config.variant} className="flex items-center gap-1">
+        <Icon className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
   };
 
   return (
@@ -427,6 +448,7 @@ function GroupCard({
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   {group.name}
+                  {getRoleBadge(group.role)}
                 </CardTitle>
                 {group.description && (
                   <CardDescription>{group.description}</CardDescription>
@@ -435,7 +457,7 @@ function GroupCard({
             )}
           </div>
           <div className="flex items-center gap-2">
-            {isAdmin && (
+            {isGroupAdmin ? (
               <>
                 <Button
                   size="sm"
@@ -469,6 +491,10 @@ function GroupCard({
                   </>
                 )}
               </>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                View Only
+              </Badge>
             )}
           </div>
         </div>

@@ -22,7 +22,7 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get only groups where the user is explicitly a member
+    // Get only groups where the user is explicitly a member, along with their org role
     const userGroupMemberships = await db
       .select({
         id: groups.id,
@@ -30,9 +30,14 @@ export async function GET() {
         description: groups.description,
         organizationId: groups.organizationId,
         createdAt: groups.createdAt,
+        role: organizationMembers.role,
       })
       .from(groupMembers)
       .innerJoin(groups, eq(groupMembers.groupId, groups.id))
+      .innerJoin(organizationMembers, and(
+        eq(organizationMembers.userId, user.id),
+        eq(organizationMembers.organizationId, groups.organizationId)
+      ))
       .where(eq(groupMembers.userId, user.id));
 
     return NextResponse.json({ groups: userGroupMemberships });
