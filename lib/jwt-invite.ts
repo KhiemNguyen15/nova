@@ -32,7 +32,7 @@ export interface InviteToken extends InvitePayload {
  * Generate an invitation JWT token
  */
 export async function generateInviteToken(payload: InvitePayload): Promise<string> {
-  const token = await new SignJWT(payload)
+  const token = await new SignJWT(payload as any)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(INVITE_EXPIRATION)
@@ -48,7 +48,7 @@ export async function verifyInviteToken(token: string): Promise<InviteToken | nu
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
 
-    return payload as InviteToken;
+    return payload as unknown as InviteToken;
   } catch (error) {
     console.error('Invalid invite token:', error);
     return null;

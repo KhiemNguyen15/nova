@@ -75,7 +75,7 @@ export function MainNav() {
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <a href="/auth/login">Sign In</a>
+                <Link href="/auth/login">Sign In</Link>
               </Button>
               <Button
                 size="sm"

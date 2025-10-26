@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, XCircle, Users, Building2 } from "lucide-react";
 
+// Disable static generation for this page (requires search params)
+export const dynamic = 'force-dynamic';
+
 export default function InvitePage() {
   const searchParams = useSearchParams();
   const router = useRouter();

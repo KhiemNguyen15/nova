@@ -35,10 +35,11 @@ export function MemberManagement() {
   const [isLoading, setIsLoading] = useState(true);
 
   const { isAdmin } = useOrganizationRole(selectedOrgId);
-  const { members, isLoading: membersLoading, updateMemberRole, removeMember, refresh } = useOrganizationMembers(selectedOrgId);
+  const { members, isLoading: membersLoading, updateMemberRole, removeMember } = useOrganizationMembers(selectedOrgId);
 
   useEffect(() => {
     fetchOrganizations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchOrganizations = async () => {
@@ -63,7 +64,7 @@ export function MemberManagement() {
   const handleUpdateRole = async (membershipId: string, newRole: 'admin' | 'manager' | 'member' | 'viewer') => {
     try {
       await updateMemberRole(membershipId, newRole);
-    } catch (error) {
+    } catch {
       alert("Failed to update member role");
     }
   };
@@ -73,7 +74,7 @@ export function MemberManagement() {
 
     try {
       await removeMember(membershipId);
-    } catch (error) {
+    } catch {
       alert("Failed to remove member");
     }
   };
