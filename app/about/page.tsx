@@ -93,7 +93,7 @@ export default function AboutPage() {
               size="lg"
               className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
             >
-              <Link href="/api/auth/login">
+              <Link href="/auth/login">
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -246,7 +246,7 @@ export default function AboutPage() {
                   size="lg"
                   className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
                 >
-                  <Link href="/api/auth/login">
+                  <Link href="/auth/login">
                     Get Started Free
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>

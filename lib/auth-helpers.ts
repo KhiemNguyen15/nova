@@ -54,7 +54,7 @@ export async function requireAuth(): Promise<AuthenticatedUser> {
   const session = await auth0.getSession();
 
   if (!session?.user) {
-    redirect('/api/auth/login');
+    redirect('/auth/login');
   }
 
   const auth0Id = session.user.sub;

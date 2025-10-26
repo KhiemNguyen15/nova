@@ -12,6 +12,8 @@ import {
   type NewUser,
   type NewConversation,
   type NewMessage,
+  type NewOrganization,
+  type NewGroup,
 } from "./schema";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
@@ -56,6 +58,59 @@ export async function getUserOrganizations(userId: string) {
     },
   });
   return result.map(om => ({ ...om.organization, role: om.role }));
+}
+
+export async function createOrganization(data: NewOrganization & { userId: string }) {
+  const { userId, ...orgData } = data;
+
+  const result = await db.transaction(async (tx) => {
+    // Create organization
+    const [newOrg] = await tx
+      .insert(organizations)
+      .values(orgData)
+      .returning();
+
+    // Add creator as admin
+    await tx.insert(organizationMembers).values({
+      userId,
+      organizationId: newOrg.id,
+      role: 'admin',
+    });
+
+    return newOrg;
+  });
+
+  return result;
+}
+
+export async function updateOrganization(organizationId: string, data: Partial<NewOrganization>) {
+  const result = await db
+    .update(organizations)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(organizations.id, organizationId))
+    .returning();
+  return result[0];
+}
+
+export async function deleteOrganization(organizationId: string) {
+  const result = await db
+    .delete(organizations)
+    .where(eq(organizations.id, organizationId))
+    .returning();
+  return result[0];
+}
+
+export async function getUserRole(userId: string, organizationId: string) {
+  const result = await db.query.organizationMembers.findFirst({
+    where: and(
+      eq(organizationMembers.userId, userId),
+      eq(organizationMembers.organizationId, organizationId)
+    ),
+  });
+  return result?.role || null;
 }
 
 // ============= Group Queries =============
@@ -111,6 +166,48 @@ export async function getOrganizationGroups(userId: string, organizationId: stri
   return result
     .filter((gm) => gm.group.organizationId === organizationId)
     .map((gm) => gm.group);
+}
+
+export async function createGroup(data: NewGroup & { userId: string }) {
+  const { userId, ...groupData } = data;
+
+  const result = await db.transaction(async (tx) => {
+    // Create group
+    const [newGroup] = await tx
+      .insert(groups)
+      .values(groupData)
+      .returning();
+
+    // Add creator to the group
+    await tx.insert(groupMembers).values({
+      userId,
+      groupId: newGroup.id,
+    });
+
+    return newGroup;
+  });
+
+  return result;
+}
+
+export async function updateGroup(groupId: string, data: Partial<NewGroup>) {
+  const result = await db
+    .update(groups)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(groups.id, groupId))
+    .returning();
+  return result[0];
+}
+
+export async function deleteGroup(groupId: string) {
+  const result = await db
+    .delete(groups)
+    .where(eq(groups.id, groupId))
+    .returning();
+  return result[0];
 }
 
 // ============= Conversation Queries =============
@@ -332,4 +429,102 @@ export async function checkUserAccessToConversation(userId: string, conversation
     ),
   });
   return !!result;
+}
+
+// ============= Member Management Queries =============
+
+export async function getOrganizationMembers(organizationId: string) {
+  const result = await db.query.organizationMembers.findMany({
+    where: eq(organizationMembers.organizationId, organizationId),
+    with: {
+      user: {
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+          createdAt: true,
+        },
+      },
+    },
+    orderBy: [desc(organizationMembers.joinedAt)],
+  });
+
+  return result.map(om => ({
+    ...om.user,
+    role: om.role,
+    joinedAt: om.joinedAt,
+    membershipId: om.id,
+  }));
+}
+
+export async function getGroupMembers(groupId: string) {
+  const result = await db.query.groupMembers.findMany({
+    where: eq(groupMembers.groupId, groupId),
+    with: {
+      user: {
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+        },
+      },
+    },
+    orderBy: [desc(groupMembers.joinedAt)],
+  });
+
+  return result.map(gm => ({
+    ...gm.user,
+    joinedAt: gm.joinedAt,
+    membershipId: gm.id,
+  }));
+}
+
+export async function updateMemberRole(membershipId: string, role: 'admin' | 'manager' | 'member' | 'viewer') {
+  const result = await db
+    .update(organizationMembers)
+    .set({ role })
+    .where(eq(organizationMembers.id, membershipId))
+    .returning();
+  return result[0];
+}
+
+export async function removeMemberFromOrganization(membershipId: string) {
+  const result = await db
+    .delete(organizationMembers)
+    .where(eq(organizationMembers.id, membershipId))
+    .returning();
+  return result[0];
+}
+
+export async function removeMemberFromGroup(membershipId: string) {
+  const result = await db
+    .delete(groupMembers)
+    .where(eq(groupMembers.id, membershipId))
+    .returning();
+  return result[0];
+}
+
+export async function addMemberToOrganization(userId: string, organizationId: string, role: 'admin' | 'manager' | 'member' | 'viewer' = 'member') {
+  const result = await db
+    .insert(organizationMembers)
+    .values({
+      userId,
+      organizationId,
+      role,
+    })
+    .returning();
+  return result[0];
+}
+
+export async function addMemberToGroup(userId: string, groupId: string) {
+  const result = await db
+    .insert(groupMembers)
+    .values({
+      userId,
+      groupId,
+    })
+    .returning();
+  return result[0];
 }

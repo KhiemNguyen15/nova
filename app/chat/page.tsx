@@ -26,7 +26,7 @@ export default function ChatPage() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!isLoadingUser && !user) {
-      router.push('/api/auth/login');
+      router.push('/auth/login');
     }
   }, [isLoadingUser, user, router]);
 

@@ -136,7 +136,7 @@ export default function PricingPage() {
                     }`}
                     size="lg"
                   >
-                    <Link href={plan.popular ? '/api/auth/login' : '#'}>
+                    <Link href={plan.popular ? '/auth/login' : '#'}>
                       {plan.buttonText}
                     </Link>
                   </Button>
@@ -233,7 +233,7 @@ export default function PricingPage() {
                   size="lg"
                   className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
                 >
-                  <Link href="/api/auth/login">Start Free Trial</Link>
+                  <Link href="/auth/login">Start Free Trial</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
                   <Link href="/about">Learn More</Link>

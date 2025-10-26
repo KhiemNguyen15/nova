@@ -6,6 +6,7 @@ import { DocumentUpload } from "@/components/documents/DocumentUpload";
 import { DocumentList } from "@/components/documents/DocumentList";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useOrganizations } from "@/hooks/useOrganizations";
+import { useOrganizationRole } from "@/hooks/useOrganizationRole";
 import { MainNav } from "@/components/navigation/main-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -27,6 +28,8 @@ export default function DocumentsPage() {
     refetch,
     deleteDocument,
   } = useDocuments(selectedOrgId);
+
+  const { isAdmin } = useOrganizationRole(selectedOrgId);
 
   // Auto-select first organization when loaded
   if (
@@ -134,25 +137,37 @@ export default function DocumentsPage() {
             </Card>
 
             {selectedOrgId && (
-              <div className="grid lg:grid-cols-2 gap-8">
-                {/* Upload Section */}
-                <Card className="border-primary/20 bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Upload className="h-5 w-5" />
-                      Upload Document
-                    </CardTitle>
-                    <CardDescription>
-                      Add new documents to your organization's knowledge base
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <DocumentUpload
-                      organizationId={selectedOrgId}
-                      onUploadSuccess={refetch}
-                    />
-                  </CardContent>
-                </Card>
+              <div className={isAdmin ? "grid lg:grid-cols-2 gap-8" : "grid gap-8"}>
+                {/* Upload Section - Only visible to admins */}
+                {isAdmin && (
+                  <Card className="border-primary/20 bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Upload className="h-5 w-5" />
+                        Upload Document
+                      </CardTitle>
+                      <CardDescription>
+                        Add new documents to your organization's knowledge base
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <DocumentUpload
+                        organizationId={selectedOrgId}
+                        onUploadSuccess={refetch}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {!isAdmin && (
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm col-span-full">
+                    <CardContent className="p-8">
+                      <p className="text-muted-foreground text-center">
+                        Only organization admins can upload documents. Contact your administrator to upload documents.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Quick Stats */}
                 <div className="space-y-4">

@@ -4,15 +4,15 @@ import { getOrganizationGroups } from '@/lib/db/queries';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ organizationId: string }> }
+  { params }: { params: Promise<{ orgId: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.redirect(new URL('/api/auth/login', request.url));
+      return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 
-    const { organizationId } = await params;
+    const { orgId: organizationId } = await params;
 
     // Get groups for the organization that the user has access to
     const groups = await getOrganizationGroups(user.id, organizationId);

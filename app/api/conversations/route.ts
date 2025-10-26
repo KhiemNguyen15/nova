@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     // Authenticate user
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.redirect(new URL('/api/auth/login', request.url));
+      return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 
     const userId = user.id;

@@ -19,6 +19,7 @@ export default function OnboardingPage() {
     name: '',
     email: '',
     organizationName: '',
+    groupName: '',
   });
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export default function OnboardingPage() {
         name: user.name || '',
         email: user.email || '',
         organizationName: '',
+        groupName: '',
       });
     }
   }, [user]);
@@ -40,7 +42,7 @@ export default function OnboardingPage() {
   }
 
   if (!user) {
-    router.push('/api/auth/login');
+    router.push('/auth/login');
     return null;
   }
 
@@ -121,6 +123,21 @@ export default function OnboardingPage() {
               />
               <p className="text-xs text-muted-foreground">
                 Create or join an organization to start collaborating
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="groupName">Initial Group Name</Label>
+              <Input
+                id="groupName"
+                type="text"
+                value={formData.groupName}
+                onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
+                required
+                placeholder="General"
+              />
+              <p className="text-xs text-muted-foreground">
+                Create your first group within the organization
               </p>
             </div>
 

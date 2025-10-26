@@ -17,10 +17,10 @@ export async function POST(request: Request) {
 
     const auth0Id = session.user.sub;
     const body = await request.json();
-    const { name, email, organizationName } = body;
+    const { name, email, organizationName, groupName } = body;
 
     // Validate required fields
-    if (!name || !email || !organizationName) {
+    if (!name || !email || !organizationName || !groupName) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -76,12 +76,12 @@ export async function POST(request: Request) {
         role: 'admin',
       });
 
-      // Create default "General" group for the organization
+      // Create first group for the organization
       const [defaultGroup] = await tx
         .insert(groups)
         .values({
-          name: 'General',
-          description: 'Default group for general discussions',
+          name: groupName,
+          description: `${groupName} group`,
           organizationId: organization.id,
           cloudflareRagId: process.env.CLOUDFLARE_DEFAULT_RAG_ID || null,
         })

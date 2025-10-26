@@ -17,7 +17,7 @@ export default async function DashboardPage() {
 
   // If no session, redirect to login
   if (!session?.user) {
-    redirect('/api/auth/login');
+    redirect('/auth/login');
   }
 
   // Check if user exists in database

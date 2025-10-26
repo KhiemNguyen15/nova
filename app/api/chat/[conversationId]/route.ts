@@ -10,7 +10,7 @@ export async function GET(
     // Authenticate user
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.redirect(new URL('/api/auth/login', request.url));
+      return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 
     const { conversationId } = await params;
