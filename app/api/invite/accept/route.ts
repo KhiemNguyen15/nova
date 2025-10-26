@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { verifyInviteToken, isInviteExpired } from '@/lib/jwt-invite';
-import { addMemberToOrganization, addMemberToGroup, checkUserAccessToGroup } from '@/lib/db/queries';
+import { addMemberToOrganization, addMemberToGroup, checkUserAccessToGroup, checkUserAccessToOrganization } from '@/lib/db/queries';
 
 // POST /api/invite/accept - Accept invitation
 export async function POST(request: NextRequest) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is already a member
+    // Check if user is already a member of the group
     const isMember = await checkUserAccessToGroup(user.id, invite.groupId);
     if (isMember) {
       return NextResponse.json(
@@ -50,8 +50,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Add user to organization and group
-    await addMemberToOrganization(user.id, invite.organizationId, 'member');
+    // Add user to organization only if they're not already a member
+    const isOrgMember = await checkUserAccessToOrganization(user.id, invite.organizationId);
+    if (!isOrgMember) {
+      await addMemberToOrganization(user.id, invite.organizationId, 'member');
+    }
+
+    // Add user to the specific group
     await addMemberToGroup(user.id, invite.groupId);
 
     return NextResponse.json({

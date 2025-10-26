@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { groups, organizations, organizationMembers, users } from "@/lib/db/schema";
+import { groups, organizations, organizationMembers, users, groupMembers } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function GET() {
@@ -22,36 +22,20 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get all organizations the user is a member of
-    const userOrgMemberships = await db
-      .select({ organizationId: organizationMembers.organizationId })
-      .from(organizationMembers)
-      .where(eq(organizationMembers.userId, user.id));
+    // Get only groups where the user is explicitly a member
+    const userGroupMemberships = await db
+      .select({
+        id: groups.id,
+        name: groups.name,
+        description: groups.description,
+        organizationId: groups.organizationId,
+        createdAt: groups.createdAt,
+      })
+      .from(groupMembers)
+      .innerJoin(groups, eq(groupMembers.groupId, groups.id))
+      .where(eq(groupMembers.userId, user.id));
 
-    const orgIds = userOrgMemberships.map(m => m.organizationId);
-
-    if (orgIds.length === 0) {
-      return NextResponse.json({ groups: [] });
-    }
-
-    // Get all groups from user's organizations
-    const allGroups = [];
-    for (const orgId of orgIds) {
-      const orgGroups = await db
-        .select({
-          id: groups.id,
-          name: groups.name,
-          description: groups.description,
-          organizationId: groups.organizationId,
-          createdAt: groups.createdAt,
-        })
-        .from(groups)
-        .where(eq(groups.organizationId, orgId));
-
-      allGroups.push(...orgGroups);
-    }
-
-    return NextResponse.json({ groups: allGroups });
+    return NextResponse.json({ groups: userGroupMemberships });
   } catch (error) {
     console.error("Error fetching groups:", error);
     return NextResponse.json(
@@ -106,17 +90,28 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the group
-    const [newGroup] = await db
-      .insert(groups)
-      .values({
-        name,
-        description,
-        organizationId,
-      })
-      .returning();
+    // Create the group and add creator as a member
+    const result = await db.transaction(async (tx) => {
+      // Create the group
+      const [newGroup] = await tx
+        .insert(groups)
+        .values({
+          name,
+          description,
+          organizationId,
+        })
+        .returning();
 
-    return NextResponse.json({ group: newGroup }, { status: 201 });
+      // Add creator as a member of the group
+      await tx.insert(groupMembers).values({
+        userId: user.id,
+        groupId: newGroup.id,
+      });
+
+      return newGroup;
+    });
+
+    return NextResponse.json({ group: result }, { status: 201 });
   } catch (error) {
     console.error("Error creating group:", error);
     return NextResponse.json(

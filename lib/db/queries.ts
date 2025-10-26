@@ -491,11 +491,47 @@ export async function updateMemberRole(membershipId: string, role: 'admin' | 'ma
 }
 
 export async function removeMemberFromOrganization(membershipId: string) {
-  const result = await db
-    .delete(organizationMembers)
-    .where(eq(organizationMembers.id, membershipId))
-    .returning();
-  return result[0];
+  // Use transaction to remove from organization and all its groups
+  const result = await db.transaction(async (tx) => {
+    // Get the membership details before deleting
+    const membership = await tx.query.organizationMembers.findFirst({
+      where: eq(organizationMembers.id, membershipId),
+    });
+
+    if (!membership) {
+      throw new Error('Membership not found');
+    }
+
+    // Get all groups in this organization
+    const orgGroups = await tx
+      .select({ id: groups.id })
+      .from(groups)
+      .where(eq(groups.organizationId, membership.organizationId));
+
+    const groupIds = orgGroups.map(g => g.id);
+
+    // Remove user from all groups in this organization
+    if (groupIds.length > 0) {
+      await tx
+        .delete(groupMembers)
+        .where(
+          and(
+            eq(groupMembers.userId, membership.userId),
+            inArray(groupMembers.groupId, groupIds)
+          )
+        );
+    }
+
+    // Remove from organization
+    const [deletedMembership] = await tx
+      .delete(organizationMembers)
+      .where(eq(organizationMembers.id, membershipId))
+      .returning();
+
+    return deletedMembership;
+  });
+
+  return result;
 }
 
 export async function removeMemberFromGroup(membershipId: string) {
