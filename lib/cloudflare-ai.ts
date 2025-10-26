@@ -164,6 +164,50 @@ export class CloudflareAIClient {
     const response = await this.query(ragId, query);
     return response.result.data;
   }
+
+  /**
+   * Sync documents to AutoRAG for indexing
+   * This triggers Cloudflare to index documents from R2 into the RAG
+   */
+  async syncDocumentsToAutoRAG(ragId: string): Promise<{ jobId: string }> {
+    const url = `${this.baseUrl}/autorag/rags/${ragId}/sync`;
+
+    console.log(`[Cloudflare AutoRAG] Syncing documents to RAG: ${ragId}`);
+
+    try {
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${this.apiKey}`,
+        },
+      });
+
+      console.log(`[Cloudflare AutoRAG] Sync response status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[Cloudflare AutoRAG] Sync error: ${errorText}`);
+        throw new Error(`Cloudflare AutoRAG sync failed (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(`AutoRAG sync failed: ${JSON.stringify(data.errors)}`);
+      }
+
+      console.log(`[Cloudflare AutoRAG] Sync job ID: ${data.result.job_id}`);
+
+      return {
+        jobId: data.result.job_id,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`[Cloudflare AutoRAG] Sync failed: ${error.message}`);
+      }
+      throw error;
+    }
+  }
 }
 
 // Singleton instance

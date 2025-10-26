@@ -1,12 +1,26 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, FileIcon, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DocumentUploadProps {
   organizationId: string;
   onUploadSuccess?: () => void;
+}
+
+interface Group {
+  id: string;
+  name: string;
 }
 
 export function DocumentUpload({
@@ -17,7 +31,31 @@ export function DocumentUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
+  const [isOrgWide, setIsOrgWide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch groups for the organization
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        setLoadingGroups(true);
+        const response = await fetch(`/api/organizations/${organizationId}/groups`);
+        if (response.ok) {
+          const data = await response.json();
+          setGroups(data.groups || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch groups:", err);
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+
+    fetchGroups();
+  }, [organizationId]);
 
   const handleFileSelect = (file: File) => {
     // Validate file size (10MB max)
@@ -59,6 +97,12 @@ export function DocumentUpload({
   const handleUpload = async () => {
     if (!selectedFile) return;
 
+    // Validation: Must select at least one group or org-wide
+    if (!isOrgWide && selectedGroupIds.length === 0) {
+      setError("Please select at least one group or mark as organization-wide");
+      return;
+    }
+
     setUploading(true);
     setError(null);
 
@@ -66,6 +110,8 @@ export function DocumentUpload({
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("organizationId", organizationId);
+      formData.append("isOrgWide", String(isOrgWide));
+      formData.append("groupIds", JSON.stringify(selectedGroupIds));
 
       const response = await fetch("/api/documents/upload", {
         method: "POST",
@@ -79,6 +125,8 @@ export function DocumentUpload({
 
       // Success
       setSelectedFile(null);
+      setSelectedGroupIds([]);
+      setIsOrgWide(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -168,6 +216,62 @@ export function DocumentUpload({
       {error && (
         <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-lg">
           {error}
+        </div>
+      )}
+
+      {selectedFile && (
+        <div className="space-y-4 p-4 rounded-lg border border-border/50 bg-card/30">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Document Access</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="orgWide"
+                checked={isOrgWide}
+                onCheckedChange={(checked) => setIsOrgWide(checked as boolean)}
+              />
+              <label
+                htmlFor="orgWide"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Organization-wide (all groups can access)
+              </label>
+            </div>
+          </div>
+
+          {!isOrgWide && (
+            <div className="space-y-2">
+              <Label htmlFor="groupSelect" className="text-sm font-medium">
+                Select Groups
+              </Label>
+              {loadingGroups ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading groups...
+                </div>
+              ) : groups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No groups available</p>
+              ) : (
+                <Select
+                  value={selectedGroupIds[0] || ""}
+                  onValueChange={(value) => setSelectedGroupIds([value])}
+                >
+                  <SelectTrigger id="groupSelect">
+                    <SelectValue placeholder="Choose a group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Document will be accessible to selected group(s)
+              </p>
+            </div>
+          )}
         </div>
       )}
 

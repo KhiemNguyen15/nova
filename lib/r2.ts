@@ -43,13 +43,15 @@ export function generateR2Key(organizationId: string, filename: string): string 
 export async function uploadToR2(
   key: string,
   file: Buffer,
-  contentType: string
+  contentType: string,
+  metadata?: Record<string, string>
 ): Promise<void> {
   const command = new PutObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
     Body: file,
     ContentType: contentType,
+    Metadata: metadata,
   });
 
   await r2Client.send(command);

@@ -94,6 +94,25 @@ export async function getGroupsByOrganization(organizationId: string) {
   return result;
 }
 
+export async function getOrganizationGroups(userId: string, organizationId: string) {
+  // Get groups in the organization where the user is a member
+  const result = await db.query.groupMembers.findMany({
+    where: eq(groupMembers.userId, userId),
+    with: {
+      group: {
+        with: {
+          organization: true,
+        },
+      },
+    },
+  });
+
+  // Filter to only groups in the specified organization
+  return result
+    .filter((gm) => gm.group.organizationId === organizationId)
+    .map((gm) => gm.group);
+}
+
 // ============= Conversation Queries =============
 
 export async function getUserConversations(userId: string) {
@@ -263,6 +282,21 @@ export async function deleteDocument(documentId: string) {
     .where(eq(documents.id, documentId))
     .returning();
   return result[0];
+}
+
+export async function assignDocumentToGroups(
+  documentId: string,
+  groupIds: string[]
+) {
+  if (groupIds.length === 0) return [];
+
+  const values = groupIds.map((groupId) => ({
+    documentId,
+    groupId,
+  }));
+
+  const result = await db.insert(documentGroups).values(values).returning();
+  return result;
 }
 
 export async function checkUserAccessToOrganization(
