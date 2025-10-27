@@ -74,7 +74,7 @@ export default async function Home() {
               className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-lg px-8"
               asChild
             >
-              <Link href="/auth">
+              <Link href="/auth/login">
                 Start Exploring
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
@@ -329,7 +329,7 @@ export default async function Home() {
               className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-lg px-8"
               asChild
             >
-              <Link href="/auth">
+              <Link href="/auth/login">
                 Get Started Free
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
