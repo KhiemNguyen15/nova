@@ -15,6 +15,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if email is verified
+    if (!session.user.email_verified) {
+      return NextResponse.json(
+        { error: 'Email not verified. Please verify your email before completing onboarding.' },
+        { status: 403 }
+      );
+    }
+
     const auth0Id = session.user.sub;
     const body = await request.json();
     const { name, email, organizationName, groupName } = body;

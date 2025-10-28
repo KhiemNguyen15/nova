@@ -14,12 +14,17 @@ export interface AuthenticatedUser {
 
 /**
  * Gets the authenticated user from Auth0 session and database
- * @returns The authenticated user or null if not authenticated
+ * @returns The authenticated user or null if not authenticated or email not verified
  */
 export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   const session = await auth0.getSession();
 
   if (!session?.user) {
+    return null;
+  }
+
+  // Check email verification from Auth0
+  if (!session.user.email_verified) {
     return null;
   }
 
@@ -48,6 +53,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
 /**
  * Requires authentication and returns the authenticated user
  * Redirects to login if not authenticated
+ * Redirects to verify-email if email not verified
  * Redirects to onboarding if user not found in database
  */
 export async function requireAuth(): Promise<AuthenticatedUser> {
@@ -55,6 +61,11 @@ export async function requireAuth(): Promise<AuthenticatedUser> {
 
   if (!session?.user) {
     redirect('/auth/login');
+  }
+
+  // Check email verification from Auth0
+  if (!session.user.email_verified) {
+    redirect('/verify-email');
   }
 
   const auth0Id = session.user.sub;
