@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Mail, RefreshCw } from 'lucide-react';
@@ -160,12 +161,12 @@ export default function VerifyEmailPage() {
           </div>
 
           <div className="pt-4 text-center">
-            <a
+            <Link
               href="/auth/logout"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
               Sign out and use a different email
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>
